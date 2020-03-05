@@ -1,0 +1,50 @@
+version: '3.5'
+
+services:
+  php:
+    build: 
+      context: build/php    
+    volumes:
+      - ./:/var/www/html/symfony
+
+  web:
+    build: build/nginx
+    restart: always
+    ports:
+        - '80:80'   
+    volumes:
+      - ./:/var/www/html/symfony
+      
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 'docker'
+      MYSQL_DATABASE: 'project'
+      MYSQL_USER: 'symfony'
+      MYSQL_PASSWORD: 'docker'
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./build/mysql:/var/lib/mysql
+
+  phpmyadmin:
+    image: 'phpmyadmin/phpmyadmin'
+    restart: always
+    ports:
+       - '81:80'
+    links:
+        - db:mysql
+    environment:
+        MYSQL_USERNAME: root
+        MYSQL_ROOT_PASSWORD: docker
+        PMA_HOST: mysql
+
+  maildev:
+    image: 'djfarrelly/maildev'
+    ports:
+      - '25'
+      - '8081:80'    
+  
+  redis:
+    image: "redis:alpine"
